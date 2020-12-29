@@ -118,7 +118,6 @@ userRouter.post('/update-by-id', async (ctx, next) => {
             mess: '更新失败~'
           }
         }
-        return
       }
       break
     case statusCode['500']:
