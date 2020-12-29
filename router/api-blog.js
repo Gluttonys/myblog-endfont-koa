@@ -128,4 +128,38 @@ blogRouter.post('/update-by-id', async (ctx, next) => {
   }
 })
 
+
+blogRouter.get('/del-by-id', async (ctx, next) => {
+  await next()
+
+  let id = ctx.query.id, status= statusCode['200']
+  id = id.includes(',') ? id.split(',').map(el => ~~el) : [~~id]
+
+  try {
+    id.forEach(async el => {
+      let tempBlog = await Blog.findByPk(el)
+      Blog.logger(`成功删除博客~ \r\n id: ${tempBlog.id} \r\n title: ${tempBlog.title}`)
+      await tempBlog.destroy()
+    })
+  } catch (e) {
+    status = statusCode['500']
+  }
+
+  switch (status) {
+    case statusCode['200']:
+      ctx.body = {
+        status,
+        mess: '删除成功~'
+      }
+      break
+    case statusCode['500']:
+      ctx.body = {
+        status,
+        mess: '删除失败~'
+      }
+  }
+
+})
+
+
 module.exports = blogRouter
