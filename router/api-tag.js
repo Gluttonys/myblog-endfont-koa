@@ -1,21 +1,21 @@
 const Router = require('koa-router')
 const {defaultConfig, statusCode} = require('../config/settings')
-const Types = require('../utils/Types')
-const userRouter = new Router()
-const User = require('../model/user')
 
-// https://www.showdoc.com.cn/1198970017278877?page_id=6055956287743654
-userRouter.get('/user-list', async (ctx, next) => {
+const tagRouter = new Router()
+const Tag = require('../model/tag')
+
+
+tagRouter.get('/tag-list', async (ctx, next) => {
   await next()
   let pagingConfig = {  // 前端传过来的都是字符串形式，所以要转一下数字
     offset: ~~(ctx.query.offset) || defaultConfig.offset,
     limit: ~~(ctx.query.limit) || defaultConfig.limit
   }
-  let count = 0, userList = [], status = statusCode['200']
+  let count = 0, tagList = [], status = statusCode['200']
 
   try {
-    userList = await User.findAll(pagingConfig)
-    count = await User.count()
+    tagList = await Tag.findAll(pagingConfig)
+    count = await Tag.count()
   } catch (e) {
     status = statusCode['500']
   }
@@ -28,7 +28,7 @@ userRouter.get('/user-list', async (ctx, next) => {
   } else {
     ctx.body = {
       count,
-      userList,
+      tagList,
       ...pagingConfig,
       status,
     }
@@ -36,20 +36,19 @@ userRouter.get('/user-list', async (ctx, next) => {
 })
 
 
-// https://www.showdoc.com.cn/1198970017278877?page_id=6055962744442303
-userRouter.get('/find-by-pk', async (ctx, next) => {
+tagRouter.get('/find-by-pk', async (ctx, next) => {
   await next()
-  let id = ~~ctx.query.id, user = {}, status= statusCode['200']
+  let id = ~~ctx.query.id, tag = {}, status= statusCode['200']
   try {
-    user = await User.findByPk(id)
+    tag = await Tag.findByPk(id)
   } catch (e) {
     status = statusCode['500']
   }
   if (status === statusCode['200']) {
     ctx.body = {
-      user,
+      tag,
       status,
-      mess: user ? '查询成功！': `不存在id为${id}的用户~`
+      mess: tag ? '查询成功！': `不存在id为${id}的tag~`
     }
   } else {
     ctx.body = {
@@ -59,13 +58,13 @@ userRouter.get('/find-by-pk', async (ctx, next) => {
   }
 })
 
-// https://www.showdoc.com.cn/1198970017278877?page_id=6055960603443863
-userRouter.post('/create-user', async (ctx, next) => {
+
+tagRouter.post('/create-tag', async (ctx, next) => {
   await next()
-  let u, status = statusCode['200']
+  let t, status = statusCode['200']
   try {
-    u = await User.create(ctx.request.body)
-    User.logger(`创建用户成功！ \r\n id : ${u.id} \r\n ${u.name}`)
+    t = await Tag.create(ctx.request.body)
+    Tag.logger(`创建用户成功！ \r\n id : ${t.id} \r\n ${t.name}`)
   } catch (e) {
     status = statusCode['500']
   }
@@ -74,7 +73,7 @@ userRouter.post('/create-user', async (ctx, next) => {
     case statusCode['200']:
       ctx.body = {
         status,
-        user: u.dataValues
+        tag: t.dataValues
       }
       break
     case statusCode['500']:
@@ -86,30 +85,29 @@ userRouter.post('/create-user', async (ctx, next) => {
 })
 
 
-// https://www.showdoc.com.cn/1198970017278877?page_id=6055967958707991
-userRouter.post('/update-by-id', async (ctx, next) => {
+tagRouter.post('/update-by-id', async (ctx, next) => {
   await next()
-  let id = ~~ctx.request.body.id, status= statusCode['200'], u
+  let id = ~~ctx.request.body.id, status= statusCode['200'], t
   try {
-    u = await User.findByPk(id)
+    t = await Tag.findByPk(id)
   } catch (e) {
     status = statusCode['500']
   }
 
   switch (status) {
     case statusCode['200']:
-      if (!u) {
+      if (!t) {
         ctx.body = {
           status:statusCode['400'],
-          mess: `id为${id}的用户不存在`
+          mess: `id为${id}的标签不存在`
         }
         return
       } else {
         if (delete ctx.request.body.id) {
-          await User.update(ctx.request.body, {where: {id}})
+          await Tag.update(ctx.request.body, {where: {id}})
           ctx.body = {
             status,
-            user: await User.findByPk(id),
+            tag: await Tag.findByPk(id),
             mess: '更新成功~'
           }
         } else {
@@ -130,20 +128,15 @@ userRouter.post('/update-by-id', async (ctx, next) => {
 })
 
 
-userRouter.get('/del-by-id', async (ctx, next) => {
+tagRouter.get('/del-by-id', async (ctx, next) => {
   await next()
-  /*
-  * id : 可以传以下两种形式，
-  *   1 ： 删除指定id的用户
-  *   "1, 2, 3, 4" ： 删除所有指定id的用户（必须以 逗号 分隔）
-  * */
   let id = ctx.query.id, status= statusCode['200']
   id = id.includes(',') ? id.split(',').map(el => ~~el) : [~~id]
 
   try {
     id.forEach(async el => {
-      let tempUser = await User.findByPk(el)
-      await tempUser.destroy()
+      let tempTag = await Tag.findByPk(el)
+      await tempTag.destroy()
     })
   } catch (e) {
     status = statusCode['500']
@@ -165,4 +158,6 @@ userRouter.get('/del-by-id', async (ctx, next) => {
 })
 
 
-module.exports = userRouter
+module.exports = tagRouter
+
+

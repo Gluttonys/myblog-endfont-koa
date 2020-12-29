@@ -12,7 +12,7 @@ blogRouter.get('/blog-list', async (ctx, next) => {
   }
   let count = 0, blogList = [], status = statusCode['200']
   try {
-    blogList = await Blog.findAll({...defaultConfig})
+    blogList = await Blog.findAll(pagingConfig)
     count = await Blog.count()
   } catch (e) {
     status = statusCode['500']

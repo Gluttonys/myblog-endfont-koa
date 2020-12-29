@@ -13,7 +13,7 @@ blogTypeLevelSecondRouter.get('/blog-type-level-one-list', async (ctx, next) => 
   let count = 0, typeList = [], status = statusCode['200']
 
   try {
-    typeList = await blogTypeLevelSecond.findAll({...defaultConfig})
+    typeList = await blogTypeLevelSecond.findAll(pagingConfig)
     count = await blogTypeLevelSecond.count()
   } catch (e) {
     status = statusCode['500']

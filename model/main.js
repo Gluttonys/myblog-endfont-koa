@@ -12,6 +12,8 @@ const Blog = require('./blog')      // 博客表
 const User = require('./user')      // 用户表
 const BlogTypeLevel1 = require('./blog-type-level-1')  // 博客一级分类
 const BlogTypeLevel2 = require('./blog-type-level-2')  // 博客二级分类
+const Tag = require('./tag')        // 标签表
+
 
 // 全局写日志方法 content : 日志内容
 Model.logger = async function (log_content) {
@@ -33,6 +35,9 @@ BlogTypeLevel2.belongsTo(BlogTypeLevel1)
 BlogTypeLevel2.hasMany(Blog, {onDelete: 'CASCADE', onUpdate: 'NO ACTION'})
 Blog.belongsTo(BlogTypeLevel2)
 
+/* Blog n ---> n Tag   多对多 */
+Blog.belongsToMany(Tag, { through: 'BlogTags' })
+Tag.belongsToMany(Blog, { through: 'BlogTags' })
 
 // 同步所有模型
 ;(async function () {

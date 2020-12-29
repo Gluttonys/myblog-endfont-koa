@@ -13,7 +13,7 @@ loggerRouter.get('/logger-list', async (ctx, next) => {
   let count = 0, loggerList = [], status = statusCode['200']
 
   try {
-    loggerList = await Logger.findAll({...defaultConfig})
+    loggerList = await Logger.findAll(pagingConfig)
     count = await Logger.count()
   } catch (e) {
     status = statusCode['500']
