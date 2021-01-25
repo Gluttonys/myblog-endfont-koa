@@ -1,7 +1,13 @@
 const Router = require('koa-router')
 const blogRouter = new Router()
 const {defaultConfig, statusCode} = require('../config/settings')
+
 const Blog = require('../model/blog')
+const User = require('../model/user')
+const Tag = require('../model/tag')
+
+const {responseBody} = require('../utils')
+const types = require('../utils/Types')
 
 // https://www.showdoc.com.cn/1198970017278877?page_id=6055994636509743
 blogRouter.get('/blog-list', async (ctx, next) => {
@@ -18,18 +24,12 @@ blogRouter.get('/blog-list', async (ctx, next) => {
     status = statusCode['500']
   }
 
-  if (status === statusCode['500']) {
-    ctx.body = {
-      status,
-      mess: '查询失败~'
-    }
-  } else {
-    ctx.body = {
-      count,
-      blogList,
-      ...pagingConfig,
-      status,
-    }
+  switch (status) {
+    case statusCode['200']:
+      ctx.body = responseBody(status, '查询成功~', blogList, {count, ...pagingConfig})
+      break
+    case statusCode['500']:
+      ctx.body = responseBody(status, '查询失败~')
   }
 })
 
@@ -62,24 +62,39 @@ blogRouter.get('/find-by-pk', async (ctx, next) => {
 blogRouter.post('/create-blog', async (ctx, next) => {
   await next()
   let blog, status = statusCode['200']
+  const {userListValue, tagListValue} = ctx.request.body
   try {
     blog = await Blog.create(ctx.request.body)
+    console.log(userListValue, tagListValue)
+    // 处理 作者和标签
+    let awaitToAddUsers = userListValue.filter(el => types.isNumber(el))
+    blog.setUsers(awaitToAddUsers)
+    for (let el of userListValue) {   // 创建新用户~
+      if (types.isString(el)) {
+        let u = await User.create({name: el, desc: '很神秘的人~', avatar: '', platform: ''})
+        u.addBlog(blog)
+      }
+    }
+
+    let awaitToAddTags = tagListValue.filter(el => types.isNumber(el))
+    blog.setTags(awaitToAddTags)
+    for (let el of tagListValue) {    // 创建新标签 ~
+      if (types.isString(el)) {
+        let t = await Tag.create({name: el})
+        t.addBlog(blog)
+      }
+    }
   } catch (e) {
     status = statusCode['500']
+    Blog.logger('服务器出错， 创建博客失败~')
   }
 
   switch (status) {
     case statusCode['200']:
-      ctx.body = {
-        status,
-        blog: blog.dataValues
-      }
+      ctx.body = responseBody(status, '创建博客成功~', blog.dataValues)
       break
     case statusCode['500']:
-      ctx.body = {
-        status,
-        mess: '创建博客失败'
-      }
+      ctx.body = responseBody(status, '创建博客失败~')
   }
 })
 
@@ -97,34 +112,18 @@ blogRouter.post('/update-by-id', async (ctx, next) => {
   switch (status) {
     case statusCode['200']:
       if (!b) {
-        ctx.body = {
-          status:statusCode['400'],
-          mess: `id为${id}的博客不存在`
-        }
-        return
+        ctx.body = responseBody(statusCode['400'], `id为${id}的博客不存在`)
       } else {
         if (delete ctx.request.body.id) {
           await Blog.update(ctx.request.body, {where: {id}})
-          ctx.body = {
-            status,
-            blog: await Blog.findByPk(id),
-            mess: '更新成功~'
-          }
+          ctx.body = responseBody(status, '更新成功~', await Blog.findByPk(id))
         } else {
-          ctx.body = {
-            status,
-            mess: '更新失败~'
-          }
+          ctx.body = responseBody(status, '更新失败~')
         }
-        return
       }
       break
     case statusCode['500']:
-      ctx.body = {
-        status,
-        mess: '更新失败~'
-      }
-      return
+      ctx.body = responseBody(status, '服务器错误, 更新博客失败~')
   }
 })
 
@@ -148,18 +147,11 @@ blogRouter.get('/del-by-id', async (ctx, next) => {
 
   switch (status) {
     case statusCode['200']:
-      ctx.body = {
-        status,
-        mess: '删除成功~'
-      }
+      ctx.body = responseBody(status, '删除成功~')
       break
     case statusCode['500']:
-      ctx.body = {
-        status,
-        mess: '删除失败~'
-      }
+      ctx.body = responseBody(status, '删除失败~')
   }
-
 })
 
 

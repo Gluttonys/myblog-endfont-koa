@@ -14,7 +14,6 @@ const Blog = module.exports = sequelize.define(
     },
     desc: {          // 文章描述
       type: DataTypes.STRING,
-      allowNull: false,
     },
     is_del: {        // 是否删除
       type: DataTypes.BOOLEAN,

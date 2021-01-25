@@ -1,10 +1,11 @@
 const Router = require('koa-router')
 const {defaultConfig, statusCode} = require('../config/settings')
+const {responseBody}  = require('../utils')
 const blogTypeLevelSecondRouter = new Router()
 const blogTypeLevelSecond = require('../model/blog-type-level-2')
 
 
-blogTypeLevelSecondRouter.get('/blog-type-level-one-list', async (ctx, next) => {
+blogTypeLevelSecondRouter.get('/blog-type-level-second-list', async (ctx, next) => {
   await next()
   let pagingConfig = {  // 前端传过来的都是字符串形式，所以要转一下数字
     offset: ~~(ctx.query.offset) || defaultConfig.offset,
@@ -64,6 +65,7 @@ blogTypeLevelSecondRouter.post('/create-type', async (ctx, next) => {
   await next()
   let t, status = statusCode['200']
   try {
+    console.log("打印", ctx.request.body)
     t = await blogTypeLevelSecond.create(ctx.request.body)
     blogTypeLevelSecond.logger(`创建一级博客类型成功！ \r\n id : ${t.id} \r\n ${t.title}`)
   } catch (e) {
@@ -72,16 +74,10 @@ blogTypeLevelSecondRouter.post('/create-type', async (ctx, next) => {
 
   switch (status) {
     case statusCode['200']:
-      ctx.body = {
-        status,
-        type: t.dataValues
-      }
+      ctx.body = responseBody(status, 'success', t.dataValues)
       break
     case statusCode['500']:
-      ctx.body = {
-        status,
-        mess: '创建用户失败~'
-      }
+      ctx.body = responseBody(status, '创建用户失败~')
   }
 })
 

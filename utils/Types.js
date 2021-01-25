@@ -1,14 +1,15 @@
 /*
 * 用于判断常见的类型
-*
 * */
-const {firstLetterUpper} = require('./index')
-const types = ['number', 'boolean', 'string', 'symbol']
+class Types {
 
-const type = {}
+  type = ['String', 'Object', 'Function', 'Symbol', 'Undefined', 'Null', 'Number']
 
-types.forEach(el => {
-  type[`is${firstLetterUpper(el)}`] = target => (typeof target === el)
-})
+  constructor() {
+    this.type.forEach(type => {
+      this[`is${type}`] = target => typeof target === type.toLowerCase()
+    })
+  }
+}
 
-module.exports = type
+module.exports = new Types()

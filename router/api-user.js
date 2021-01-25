@@ -1,6 +1,6 @@
 const Router = require('koa-router')
 const {defaultConfig, statusCode} = require('../config/settings')
-const Types = require('../utils/Types')
+const {responseBody} = require('../utils')
 const userRouter = new Router()
 const User = require('../model/user')
 
@@ -18,20 +18,15 @@ userRouter.get('/user-list', async (ctx, next) => {
     count = await User.count()
   } catch (e) {
     status = statusCode['500']
+    User.logger(`查询用户列表失败~`)
   }
 
-  if (status === statusCode['500']) {
-    ctx.body = {
-      status,
-      mess: '查询失败~'
-    }
-  } else {
-    ctx.body = {
-      count,
-      userList,
-      ...pagingConfig,
-      status,
-    }
+  switch (status) {
+    case statusCode['200']:
+      ctx.body = responseBody(status, '查询成功~', userList, {count, ...pagingConfig})
+      break
+    case statusCode['500']:
+      ctx.body = responseBody(status, '查询失败~')
   }
 })
 
@@ -68,20 +63,15 @@ userRouter.post('/create-user', async (ctx, next) => {
     User.logger(`创建用户成功！ \r\n id : ${u.id} \r\n ${u.name}`)
   } catch (e) {
     status = statusCode['500']
+    User.logger('创建用户失败~')
   }
 
   switch (status) {
     case statusCode['200']:
-      ctx.body = {
-        status,
-        user: u.dataValues
-      }
+      ctx.body = responseBody(status,"创建用户成功~",  u.dataValues)
       break
     case statusCode['500']:
-      ctx.body = {
-        status,
-        mess: '创建用户失败~'
-      }
+      ctx.body = responseBody(status, "创建用户失败~")
   }
 })
 
@@ -91,6 +81,7 @@ userRouter.post('/update-by-id', async (ctx, next) => {
   await next()
   let id = ~~ctx.request.body.id, status= statusCode['200'], u
   try {
+    console.log(id)
     u = await User.findByPk(id)
   } catch (e) {
     status = statusCode['500']
@@ -99,32 +90,19 @@ userRouter.post('/update-by-id', async (ctx, next) => {
   switch (status) {
     case statusCode['200']:
       if (!u) {
-        ctx.body = {
-          status:statusCode['400'],
-          mess: `id为${id}的用户不存在`
-        }
+        ctx.body = responseBody(status, `更新失败， id为${id}的用户不存在`)
         return
       } else {
         if (delete ctx.request.body.id) {
           await User.update(ctx.request.body, {where: {id}})
-          ctx.body = {
-            status,
-            user: await User.findByPk(id),
-            mess: '更新成功~'
-          }
+          ctx.body = responseBody(status, '更新成功~', await User.findByPk(id))
         } else {
-          ctx.body = {
-            status,
-            mess: '更新失败~'
-          }
+          ctx.body = responseBody(status, '更新失败~')
         }
       }
       break
     case statusCode['500']:
-      ctx.body = {
-        status,
-        mess: '更新失败~'
-      }
+      ctx.body = responseBody(status, '服务器错误， 更新失败~')
       return
   }
 })

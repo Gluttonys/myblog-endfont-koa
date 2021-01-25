@@ -4,14 +4,13 @@
 * */
 
 /*
-* 首字母大写
+* 格式化 响应对象
 * */
-
-const firstLetterUpper = target => (
-  typeof target === 'string' && target.slice(0, 1).toUpperCase() + target.slice(1)
-)
+const responseBody = (status = '200', mess, data = null, other = null) => {
+  return {status, mess, data, other}
+}
 
 
 module.exports = {
-  firstLetterUpper
+  responseBody
 }

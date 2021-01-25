@@ -13,15 +13,15 @@ module.exports = sequelize.define(
       defaultValue: 'Gluttony'
     },
     desc: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(200),
       allowNull: true
     },
     avatar: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(1000),
       allowNull: false
     },
     platform: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(20),
       allowNull: false
     }
   },

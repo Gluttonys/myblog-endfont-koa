@@ -1,5 +1,6 @@
 const Router = require('koa-router')
 const {defaultConfig, statusCode} = require('../config/settings')
+const {responseBody} = require('../utils')
 const blogTypeLevelOneRouter = new Router()
 const blogTypeLevelOne = require('../model/blog-type-level-1')
 
@@ -72,16 +73,10 @@ blogTypeLevelOneRouter.post('/create-type', async (ctx, next) => {
 
   switch (status) {
     case statusCode['200']:
-      ctx.body = {
-        status,
-        type: t.dataValues
-      }
+      ctx.body = responseBody(status, 'success', t.dataValues)
       break
     case statusCode['500']:
-      ctx.body = {
-        status,
-        mess: '创建用户失败~'
-      }
+      ctx.body = responseBody(status, '创建一级分类失败~')
   }
 })
 
@@ -145,18 +140,11 @@ blogTypeLevelOneRouter.get('/del-by-id', async (ctx, next) => {
 
   switch (status) {
     case statusCode['200']:
-      ctx.body = {
-        status,
-        mess: '删除成功~'
-      }
+      ctx.body = responseBody(status, '删除成功~')
       break
     case statusCode['500']:
-      ctx.body = {
-        status,
-        mess: '删除失败~'
-      }
+      ctx.body = responseBody(status, '删除失败~')
   }
-
 })
 
 

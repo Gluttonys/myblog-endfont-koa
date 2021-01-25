@@ -1,6 +1,7 @@
 const Router = require('koa-router')
 const {defaultConfig, statusCode} = require('../config/settings')
 
+const {responseBody} = require('../utils')
 const tagRouter = new Router()
 const Tag = require('../model/tag')
 
@@ -18,20 +19,16 @@ tagRouter.get('/tag-list', async (ctx, next) => {
     count = await Tag.count()
   } catch (e) {
     status = statusCode['500']
+    Tag.logger('查询博客标签失败~')
   }
 
-  if (status === statusCode['500']) {
-    ctx.body = {
-      status,
-      mess: '查询失败~'
-    }
-  } else {
-    ctx.body = {
-      count,
-      tagList,
-      ...pagingConfig,
-      status,
-    }
+  switch (status) {
+    case statusCode['200']:
+      console.log(status)
+      ctx.body = responseBody(status, '查询成功~', tagList, {count, pagingConfig})
+      break
+    case statusCode['500']:
+      ctx.body = responseBody(status, '查询失败~')
   }
 })
 

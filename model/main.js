@@ -18,14 +18,15 @@ const Tag = require('./tag')        // 标签表
 // 全局写日志方法 content : 日志内容
 Model.logger = async function (log_content) {
   if (Types.isString(log_content) && log_content.trim()) {
+    log_content = `${Date.now()}   ${log_content}`
     await Logger.create({log_content})
   }
 }
 
 
-/* Blog 1 ---> n User  一对多  */
-Blog.hasMany(User, {onDelete: 'NO ACTION', onUpdate: 'NO ACTION'})
-User.belongsTo(Blog)
+/* Blog n ---> n User  多对多  */
+Blog.belongsToMany(User, {through: 'BlogUsers'})
+User.belongsToMany(Blog, {through: 'BlogUsers'})
 
 /* BlogTypeLevel1 1 ---> n BlogTypeLevel2  一对多  */
 BlogTypeLevel1.hasMany(BlogTypeLevel2, {onDelete: 'CASCADE', onUpdate: 'NO ACTION'})
